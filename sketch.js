@@ -53,16 +53,16 @@ function draw() {
 
   // 소리 크기가 임계값보다 큰 경우에만 구슬 생성
   if (avg > soundThreshold && frameCount % 2 == 0) {
-    // 10프레임마다 구슬 생성
+    // 2프레임마다 구슬 생성
     let circleSize = map(avg, 12, 80, 5, 100);
     let circleX = map(avg, 12, 100, 0, width); // 소리 크기에 따라 x 위치 설정
     let circleY = random(height / 2); // Adjust Y position to center
 
-    // 색상 설정: 초록색(120)에서 핑크색(330)으로 변환
+    // 색상 설정: 소리의 크기에 따라 극적으로 달라지도록 조정
     let colorHue = map(avg, 10, 50, 120, 330);
     let circleColor = color(colorHue, 100, 100, 50);
 
-    circles.push(new Circle(circleX, circleY, circleSize, circleColor));
+    circles.push(new Circle(circleX, circleY, circleSize, circleColor, avg));
   }
 
   // Draw circles
@@ -73,13 +73,12 @@ function draw() {
 
   // 오래된 구슬 제거
   while (circles.length > 140) {
-    // 예: 50개 이상의 구슬이 생기지 않도록
+    // 예: 140개 이상의 구슬이 생기지 않도록
     let c = circles.shift();
     World.remove(world, c.body);
   }
 }
-
-function Circle(x, y, size, col) {
+function Circle(x, y, size, col, avg) {
   let options = {
     friction: 0.5,
     restitution: 1,
@@ -87,6 +86,7 @@ function Circle(x, y, size, col) {
   this.body = Bodies.circle(x, y, size, options);
   this.size = size;
   this.col = col;
+  this.avg = avg; // avg 값을 저장
   World.add(world, this.body);
 
   this.show = function () {
@@ -96,10 +96,36 @@ function Circle(x, y, size, col) {
     push();
     translate(pos.x, pos.y);
     rotate(angle);
-    fill(this.col); // 색상을 적용
+    // fill(this.col); // 색상을 적용
     ellipseMode(CENTER);
-    noStroke();
-    ellipse(0, 0, this.size * 2);
+    // noStroke();
+    fill(this.col);
+    stroke(this.col);
+    strokeWeight(this.size / 2);
+    //ellipse(0, 0, this.size * 2);
+
+    // avg 값에 따라 다른 도형 그리기
+    //fill(255); // 도형 색상 설정
+    if (this.avg < 20) {
+      ellipse(0, 0, this.size); // 작은 원
+    } else if (this.avg < 30) {
+      rectMode(CENTER);
+      rect(0, 0, this.size, this.size); // 정사각형
+    } else if (this.avg < 40) {
+      triangle(-this.size, this.size, 0, -this.size, this.size, this.size); // 삼각형
+    } else if (this.avg < 50) {
+      beginShape();
+      for (let i = 0; i < 5; i++) {
+        let angle = map(i, 0, 5, 0, TWO_PI);
+        let x = cos(angle) * this.size;
+        let y = sin(angle) * this.size;
+        vertex(x, y);
+      }
+      endShape(CLOSE); // 오각형
+    } else {
+      ellipse(0, 0, this.size * 1.5); // 큰 원
+    }
+
     pop();
   };
 }
