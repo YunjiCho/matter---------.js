@@ -54,7 +54,7 @@ function draw() {
   // 소리 크기가 임계값보다 큰 경우에만 구슬 생성
   if (avg > soundThreshold && frameCount % 2 == 0) {
     // 10프레임마다 구슬 생성
-    let circleSize = map(avg, 12, 100, 5, 70);
+    let circleSize = map(avg, 12, 80, 5, 100);
     let circleX = map(avg, 12, 100, 0, width); // 소리 크기에 따라 x 위치 설정
     let circleY = random(height / 2); // Adjust Y position to center
 
