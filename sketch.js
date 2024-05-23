@@ -54,7 +54,7 @@ function draw() {
   // 소리 크기가 임계값보다 큰 경우에만 구슬 생성
   if (avg > soundThreshold && frameCount % 2 == 0) {
     // 2프레임마다 구슬 생성
-    let circleSize = map(avg, 12, 80, 5, 100);
+    let circleSize = map(avg, 12, 80, 10, 100);
     let circleX = map(avg, 12, 100, 0, width); // 소리 크기에 따라 x 위치 설정
     let circleY = random(height / 2); // Adjust Y position to center
 
@@ -114,6 +114,16 @@ function Circle(x, y, size, col, avg) {
     } else if (this.avg < 40) {
       triangle(-this.size, this.size, 0, -this.size, this.size, this.size); // 삼각형
     } else if (this.avg < 50) {
+      fill(255);
+      beginShape();
+      for (let i = 0; i < 5; i++) {
+        let angle = map(i, 0, 5, 0, TWO_PI);
+        let x = (cos(angle) * this.size) / 1.5;
+        let y = (sin(angle) * this.size) / 1.5;
+        vertex(x, y);
+      }
+      endShape(CLOSE); // 오각형
+      noFill();
       beginShape();
       for (let i = 0; i < 5; i++) {
         let angle = map(i, 0, 5, 0, TWO_PI);
@@ -123,6 +133,9 @@ function Circle(x, y, size, col, avg) {
       }
       endShape(CLOSE); // 오각형
     } else {
+      fill(255);
+      ellipse(0, 0, this.size); // 큰 원
+      noFill();
       ellipse(0, 0, this.size * 1.5); // 큰 원
     }
 
