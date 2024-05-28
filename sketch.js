@@ -53,22 +53,48 @@ function draw() {
 
   // 소리 크기가 임계값보다 큰 경우에만 구슬 생성
   if (avg > soundThreshold && frameCount % 2 == 0) {
-    // 2프레임마다 구슬 생성
-    let circleSize = map(avg, 12, 80, 10, 100);
-    let circleX = map(avg, 12, 100, 0, width); // 소리 크기에 따라 x 위치 설정
-    let circleY = random(height / 2); // Adjust Y position to center
+    // 기본 주파수를 찾기 위해 가장 강한 주파수 성분을 찾습니다.
+    let nyquist = 22050;
+    let binWidth = nyquist / spectrum.length;
+    let lowFreq = 85;
+    let highFreq = 255;
+    let lowIndex = floor(lowFreq / binWidth);
+    let highIndex = floor(highFreq / binWidth);
 
-    // 색상 설정: 소리의 크기에 따라 극적으로 달라지도록 조정
-    let colorHue = map(avg, 10, 50, 120, 330);
+    let maxAmplitude = 0;
+    let fundamentalIndex = 0;
+    for (let i = lowIndex; i <= highIndex; i++) {
+      if (spectrum[i] > maxAmplitude) {
+        maxAmplitude = spectrum[i];
+        fundamentalIndex = i;
+      }
+    }
+
+    let fundamentalFreq = fundamentalIndex * binWidth;
+
+    // 색상 설정: 주파수에 따라 색상 변경
+    let colorHue = map(fundamentalFreq, lowFreq, highFreq, 0, 360);
     let circleColor = color(colorHue, 100, 100, 50);
 
-    circles.push(new Circle(circleX, circleY, circleSize, circleColor, avg));
+    // 주파수에 따라 x 위치 설정
+    let circleX;
+    if (fundamentalFreq < 165) {
+      circleX = random(0, width / 2);
+    } else {
+      circleX = random(width / 2, width);
+    }
+    let circleY = random(height / 2); // Adjust Y position to center
+
+    let circleSize = map(avg, 12, 80, 10, 100);
+
+    circles.push(
+      new Circle(circleX, circleY, circleSize, circleColor, fundamentalFreq)
+    );
   }
 
   // Draw circles
   for (let i = 0; i < circles.length; i++) {
     circles[i].show();
-    print(avg);
   }
 
   // 오래된 구슬 제거
@@ -78,7 +104,8 @@ function draw() {
     World.remove(world, c.body);
   }
 }
-function Circle(x, y, size, col, avg) {
+
+function Circle(x, y, size, col, freq) {
   let options = {
     friction: 0.5,
     restitution: 1,
@@ -86,7 +113,7 @@ function Circle(x, y, size, col, avg) {
   this.body = Bodies.circle(x, y, size, options);
   this.size = size;
   this.col = col;
-  this.avg = avg; // avg 값을 저장
+  this.freq = freq; // 주파수 값을 저장
   World.add(world, this.body);
 
   this.show = function () {
@@ -104,39 +131,31 @@ function Circle(x, y, size, col, avg) {
     strokeWeight(this.size / 2);
     //ellipse(0, 0, this.size * 2);
 
-    // avg 값에 따라 다른 도형 그리기
-    //fill(255); // 도형 색상 설정
-    if (this.avg < 20) {
-      ellipse(0, 0, this.size); // 작은 원
-    } else if (this.avg < 30) {
-      rectMode(CENTER);
-      rect(0, 0, this.size, this.size); // 정사각형
-    } else if (this.avg < 40) {
-      triangle(-this.size, this.size, 0, -this.size, this.size, this.size); // 삼각형
-    } else if (this.avg < 50) {
-      fill(255);
+    // 주파수 값에 따라 다른 도형 그리기
+    let numSides;
+    if (this.freq < 100) {
+      numSides = 20; // 원에 가까운 다각형
+    } else if (this.freq < 140) {
+      numSides = 6; // 육각형
+    } else if (this.freq < 180) {
+      numSides = 4; // 사각형
+    } else if (this.freq < 220) {
+      numSides = 3; // 삼각형
+    } else {
+      numSides = 2; // 선형 (직선)
+    }
+
+    if (numSides > 2) {
       beginShape();
-      for (let i = 0; i < 5; i++) {
-        let angle = map(i, 0, 5, 0, TWO_PI);
-        let x = (cos(angle) * this.size) / 1.5;
-        let y = (sin(angle) * this.size) / 1.5;
-        vertex(x, y);
-      }
-      endShape(CLOSE); // 오각형
-      noFill();
-      beginShape();
-      for (let i = 0; i < 5; i++) {
-        let angle = map(i, 0, 5, 0, TWO_PI);
+      for (let i = 0; i < numSides; i++) {
+        let angle = map(i, 0, numSides, 0, TWO_PI);
         let x = cos(angle) * this.size;
         let y = sin(angle) * this.size;
         vertex(x, y);
       }
-      endShape(CLOSE); // 오각형
+      endShape(CLOSE);
     } else {
-      fill(255);
-      ellipse(0, 0, this.size); // 큰 원
-      noFill();
-      ellipse(0, 0, this.size * 1.5); // 큰 원
+      line(-this.size, 0, this.size, 0);
     }
 
     pop();
