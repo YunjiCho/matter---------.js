@@ -38,11 +38,22 @@ function setup() {
   var options = {
     isStatic: true,
   };
+  
+  // Ground
   ground = Bodies.rectangle(width / 2, height, width, 100, options);
   World.add(world, ground);
 
+  // Left wall
+  let leftWall = Bodies.rectangle(0, height / 2, 50, height, options);
+  World.add(world, leftWall);
+
+  // Right wall
+  let rightWall = Bodies.rectangle(width, height / 2, 50, height, options);
+  World.add(world, rightWall);
+
   colorMode(HSB, 360, 100, 100, 100);
 }
+
 
 function draw() {
   if (posterGenerated==0) {
@@ -79,7 +90,7 @@ function draw() {
 
         let circleX = fundamentalFreq < 165 ? random(0, width / 2) : random(width / 2, width);
         let circleY = random(height / 2);
-        let circleSize = map(avg, 12, 80, 10, 60);
+        let circleSize = map(avg, 12, 80, 10, 40);
 
         circles.push(new Circle(circleX, circleY, circleSize, circleColor, fundamentalFreq));
         dataPoints.push({ freq: fundamentalFreq, amp: avg, size: circleSize, color: circleColor.levels, colorHue: colorHue });
