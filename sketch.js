@@ -92,7 +92,7 @@ function draw() {
             ? random(0, width / 2)
             : random(width / 2, width);
         let circleY = random(height / 2);
-        let circleSize = map(avg, 12, 80, 20, 60);
+        let circleSize = map(avg, 12, 80, 20, 100);
 
         circles.push(
           new Circle(circleX, circleY, circleSize, circleColor, fundamentalFreq)
